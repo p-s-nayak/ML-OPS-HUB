@@ -2,14 +2,12 @@ from huggingface_hub.utils import RepositoryNotFoundError, HfHubHTTPError
 from huggingface_hub import HfApi, create_repo
 import os
 
-repo_id = "psnayak90/bank-customer-churn"
+repo_id = "partha90/bank-customer-churn"
 repo_type = "dataset"
 token = os.getenv("HF_TOKEN")
 
-# Initialize API client
 api = HfApi(token=token)
 
-# Step 1: Check if the repo exists, create if not
 try:
     api.repo_info(repo_id=repo_id, repo_type=repo_type)
     print(f"Dataset repo '{repo_id}' already exists. Using it.")

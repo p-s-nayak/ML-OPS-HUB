@@ -3,8 +3,8 @@ import os
 
 api = HfApi(token=os.getenv("HF_TOKEN"))
 api.upload_folder(
-    folder_path="mlops/deployment",     # the local folder containing your files
-    repo_id="psnayak90/Bank-Customer-Churn",          # the target repo
-    repo_type="space",                      # dataset, model, or space
-    path_in_repo="",                          # optional: subfolder path inside the repo
+    folder_path="mlops/deployment",
+    repo_id="partha90/Bank-Customer-Churn",
+    repo_type="space",
+    path_in_repo="",
 )
