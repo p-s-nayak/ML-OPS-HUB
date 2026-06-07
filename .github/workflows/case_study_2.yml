@@ -1,0 +1,64 @@
+name: Case Study 2 - Machine Failure Prediction Pipeline
+
+on:
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+
+  register-dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        working-directory: case_study_2_Machine_Failure_Prediction
+        run: pip install -r machine-failure-prediction/requirements.txt
+      - name: Upload Dataset to Hugging Face Hub
+        working-directory: case_study_2_Machine_Failure_Prediction
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python machine-failure-prediction/model_building/data_register.py
+
+  data-prep:
+    needs: register-dataset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        working-directory: case_study_2_Machine_Failure_Prediction
+        run: pip install -r machine-failure-prediction/requirements.txt
+      - name: Run Data Preparation
+        working-directory: case_study_2_Machine_Failure_Prediction
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python machine-failure-prediction/model_building/prep.py
+
+  model-training:
+    needs: data-prep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        working-directory: case_study_2_Machine_Failure_Prediction
+        run: pip install -r machine-failure-prediction/requirements.txt
+      - name: Model Building
+        working-directory: case_study_2_Machine_Failure_Prediction
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python machine-failure-prediction/model_building/train.py
+
+  deploy-hosting:
+    needs: [model-training, data-prep, register-dataset]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        working-directory: case_study_2_Machine_Failure_Prediction
+        run: pip install -r machine-failure-prediction/requirements.txt
+      - name: Push files to Hugging Face Space
+        working-directory: case_study_2_Machine_Failure_Prediction
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python machine-failure-prediction/hosting/hosting.py
