@@ -1,6 +1,6 @@
 from huggingface_hub import HfApi, create_repo
-from huggingface_hub.utils import RepositoryNotFoundError
-import os
+from huggingface_hub.utils import RepositoryNotFoundError, HfHubHTTPError
+import os, time
 
 repo_id   = "partha90/Machine-Failure-Prediction"
 repo_type = "space"
@@ -21,10 +21,24 @@ except RepositoryNotFoundError:
         token=token,
     )
     print(f"Space '{repo_id}' created.")
+    time.sleep(5)  # let the space initialise before uploading
 
-api.upload_folder(
-    folder_path="machine-failure-prediction/deployment",
-    repo_id=repo_id,
-    repo_type=repo_type,
-    path_in_repo="",
-)
+# Retry upload with exponential backoff for rate limiting (429)
+max_retries = 5
+for attempt in range(1, max_retries + 1):
+    try:
+        api.upload_folder(
+            folder_path="machine-failure-prediction/deployment",
+            repo_id=repo_id,
+            repo_type=repo_type,
+            path_in_repo="",
+        )
+        print("Upload successful.")
+        break
+    except HfHubHTTPError as e:
+        if "429" in str(e) and attempt < max_retries:
+            wait = 2 ** attempt  # 2s, 4s, 8s, 16s, 32s
+            print(f"Rate limited (429). Retrying in {wait}s... (attempt {attempt}/{max_retries})")
+            time.sleep(wait)
+        else:
+            raise
